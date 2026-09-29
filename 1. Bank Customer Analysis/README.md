@@ -82,7 +82,7 @@ Incoming amounts are positive and outgoing amounts are negative in the source da
 SQL identifiers remain in Italian to match the original database. The [Italian SQL Identifiers — English Glossary](#italian-sql-identifiers--english-glossary) below explains table names, columns, aliases, and derived features, matching the glossary in the analysis script.
 
 
-## Italian SQL Identifiers — English Glossary
+### Italian SQL Identifiers — English Glossary
 
 ### Database / Schema
 
