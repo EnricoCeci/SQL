@@ -79,7 +79,7 @@ These are logical relationships used to interpret and query the data; the suppli
 
 Incoming amounts are positive and outgoing amounts are negative in the source data. The analysis preserves this sign convention when summing amounts.
 
-SQL identifiers remain in Italian to match the original database. The [Italian SQL Identifiers — English Glossary](#italian-sql-identifiers--english-glossary) below explains table names, columns, aliases, and derived features, matching the glossary in the analysis script.
+SQL identifiers remain in Italian to match the original database. The "Italian SQL Identifiers — English Glossary" below explains table names, columns, aliases, and derived features, matching the glossary in the analysis script.
 
 
 ### Italian SQL Identifiers — English Glossary
