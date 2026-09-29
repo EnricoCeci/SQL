@@ -81,77 +81,6 @@ Incoming amounts are positive and outgoing amounts are negative in the source da
 
 SQL identifiers remain in Italian to match the original database. The [Italian SQL Identifiers — English Glossary](#italian-sql-identifiers--english-glossary) below explains table names, columns, aliases, and derived features, matching the glossary in the analysis script.
 
----
-
-## Methodology
-
-### 1. Database Inspection
-
-Preview the five source tables to understand their contents and relationships. Count customers and accounts, then group accounts by customer to examine account ownership.
-
-### 2. Individual Indicator Queries
-
-Develop separate queries for each indicator group:
-
-- Calculate age in completed years from `data_nascita` using `TIMESTAMPDIFF()`.
-- Join transactions to accounts to associate each transaction with its customer.
-- Calculate transaction counts and total amounts by customer and direction.
-- Use conditional aggregation to break down account holdings and transaction activity by account type.
-
-The standalone queries use direction filters through `WHERE`. Overall transaction indicators use `id_tipo_trans > 2` for outgoing transactions and `< 3` for incoming transactions; the standalone account-type transaction queries use explicit `IN (...)` lists.
-
-### 3. Customer-Level Aggregation
-
-Combine the indicators in a single query starting from `cliente`:
-
-- **`LEFT JOIN`** retains every customer, even when no matching accounts or transactions exist.
-- **Conditions inside `CASE WHEN`** calculate incoming and outgoing indicators together without a global direction filter removing rows needed by other indicators.
-- **`COUNT(DISTINCT cont.id_conto)`** prevents accounts from being counted repeatedly after the join to transactions.
-- **`COUNT(DISTINCT CASE WHEN ... END)`** applies the same protection to account counts by type.
-- **`GROUP BY cl.id_cliente, cl.data_nascita`** produces one row per customer in the supplied dataset.
-- **`ROUND(..., 2)`** rounds aggregated monetary amounts to two decimal places in the final table.
-
-### 4. Final Table Creation
-
-Store the results in `banca.tab_denormalizzata` using `CREATE TABLE ... AS SELECT`.
-
-The table contains `id_cliente` plus 26 derived features. Customers without accounts receive zero account and transaction indicators. Age is calculated at execution time, while transaction indicators summarize all available transaction records without a date filter.
-
-The final query classifies transactions using `< 3` and `> 2`. These conditions match the incoming and outgoing type ranges in the supplied dataset; they would need reviewing if the transaction type coding changed.
-
----
-
-## Project Structure
-
-Keep the following files in the project directory:
-
-| File | Purpose |
-| --- | --- |
-| `README.md` | Project overview, methodology, findings, and execution instructions |
-| `db_bancario.sql` | Source script that creates and populates the banking database |
-| `Bank customer analysis.sql` | Analysis queries, English comments and glossary, and final table creation |
-
----
-
-## Main Findings
-
-### Customer and Account Coverage
-
-The source data contains **200 customers** and **240 accounts**. Of these customers, **142 hold at least one account**, **66 hold more than one account**, and **58 have no associated account**.
-
-Retaining the complete customer population therefore matters in this dataset: an inner join from customers to accounts would exclude those 58 customers from the analytical table.
-
-### Analytical Output
-
-The final query is designed to produce **200 rows and 27 columns**: one customer identifier and **26 features** derived from the 11 indicator groups.
-
-The resulting table brings together demographic information, account ownership, transaction frequency, and transaction amounts. Distinct account counts prevent transaction volume from inflating the number of accounts attributed to a customer.
-
-### Business Relevance
-
-The features can support comparisons of customer activity, account usage, and incoming and outgoing flows. They can also serve as inputs for later segmentation or predictive modelling. These applications would require additional analysis and validation beyond the scope of this project.
-
----
 
 ## Italian SQL Identifiers — English Glossary
 
@@ -244,6 +173,77 @@ Incoming transaction amounts are stored as positive values in the source data.
 | `uscita` | outgoing |
 | `entrata` | incoming |
 | `c` | conto (account) |
+
+
+---
+
+## Methodology
+
+### 1. Database Inspection
+
+Preview the five source tables to understand their contents and relationships. Count customers and accounts, then group accounts by customer to examine account ownership.
+
+### 2. Individual Indicator Queries
+
+Develop separate queries for each indicator group:
+
+- Calculate age in completed years from `data_nascita` using `TIMESTAMPDIFF()`.
+- Join transactions to accounts to associate each transaction with its customer.
+- Calculate transaction counts and total amounts by customer and direction.
+- Use conditional aggregation to break down account holdings and transaction activity by account type.
+
+The standalone queries use direction filters through `WHERE`. Overall transaction indicators use `id_tipo_trans > 2` for outgoing transactions and `< 3` for incoming transactions; the standalone account-type transaction queries use explicit `IN (...)` lists.
+
+### 3. Customer-Level Aggregation
+
+Combine the indicators in a single query starting from `cliente`:
+
+- **`LEFT JOIN`** retains every customer, even when no matching accounts or transactions exist.
+- **Conditions inside `CASE WHEN`** calculate incoming and outgoing indicators together without a global direction filter removing rows needed by other indicators.
+- **`COUNT(DISTINCT cont.id_conto)`** prevents accounts from being counted repeatedly after the join to transactions.
+- **`COUNT(DISTINCT CASE WHEN ... END)`** applies the same protection to account counts by type.
+- **`GROUP BY cl.id_cliente, cl.data_nascita`** produces one row per customer in the supplied dataset.
+- **`ROUND(..., 2)`** rounds aggregated monetary amounts to two decimal places in the final table.
+
+### 4. Final Table Creation
+
+Store the results in `banca.tab_denormalizzata` using `CREATE TABLE ... AS SELECT`.
+
+The table contains `id_cliente` plus 26 derived features. Customers without accounts receive zero account and transaction indicators. Age is calculated at execution time, while transaction indicators summarize all available transaction records without a date filter.
+
+The final query classifies transactions using `< 3` and `> 2`. These conditions match the incoming and outgoing type ranges in the supplied dataset; they would need reviewing if the transaction type coding changed.
+
+---
+
+## Project Structure
+
+Keep the following files in the project directory:
+
+| File | Purpose |
+| --- | --- |
+| `README.md` | Project overview, methodology, findings, and execution instructions |
+| `db_bancario.sql` | Source script that creates and populates the banking database |
+| `Bank customer analysis.sql` | Analysis queries, English comments and glossary, and final table creation |
+
+---
+
+## Main Findings
+
+### Customer and Account Coverage
+
+The source data contains **200 customers** and **240 accounts**. Of these customers, **142 hold at least one account**, **66 hold more than one account**, and **58 have no associated account**.
+
+Retaining the complete customer population therefore matters in this dataset: an inner join from customers to accounts would exclude those 58 customers from the analytical table.
+
+### Analytical Output
+
+The final query is designed to produce **200 rows and 27 columns**: one customer identifier and **26 features** derived from the 11 indicator groups.
+
+The resulting table brings together demographic information, account ownership, transaction frequency, and transaction amounts. Distinct account counts prevent transaction volume from inflating the number of accounts attributed to a customer.
+
+### Business Relevance
+
+The features can support comparisons of customer activity, account usage, and incoming and outgoing flows. They can also serve as inputs for later segmentation or predictive modelling. These applications would require additional analysis and validation beyond the scope of this project.
 
 ---
 
